@@ -39,7 +39,7 @@ public class Main {
             walker.walk(agentWalker, tree);
 
             Agent agent = new Agent();
-            agent.run(agentWalker);
+            agent.run(agentWalker, null);
 
 
 

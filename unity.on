@@ -1,5 +1,9 @@
 communication:
-    sensor("test", "unity.SensorTest").
+    sensor("visionFar", "unity.SensorVisionFar").
+    sensor("visionMed", "unity.SensorVisionMed").
+    sensor("visionClose", "unity.SensorVisionClose").
+    sensor("tact", "unity.SensorTact").
+    sensor("hearing", "unity.SensorHearing").
     actuator("sayHello", "unity.ActuatorTest").
 
 planner:
