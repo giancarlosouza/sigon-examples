@@ -36,7 +36,7 @@ public class SensorVisionClose extends Sensor {
                     break;
                 }
                 //System.out.println("Message received from client is " + msg);
-                Perception p = new Perception(msg);
+                Perception p = new Perception(msg.substring(0, msg.lastIndexOf(",")));
                 perceptions.remove(p);
                 perceptions.add(p);
 
@@ -63,15 +63,14 @@ public class SensorVisionClose extends Sensor {
                     if (oldPerceptions.size() > oldPerceptionsSize) {
                         if (this.getPriority() < this.getMaxPriority()) {
                             this.setPriority(this.getPriority() + 1);
-                            System.out.println(this.sensorName + " Priority " + this.getPriority());
                         }
                     } else {
                         if (this.getPriority() > this.getMinPriority()) {
                             this.setPriority(this.getPriority() - 1);
                         }
-                        System.out.println(this.sensorName + " Priority " + this.getPriority());
                     }
-
+                    System.out.println(this.sensorName + " Priority: " + this.getPriority() + ", Time: "
+                            + msg.substring(msg.lastIndexOf(",")+1));
                     timeToCheckPerceptions = 1000;
                 }
 
