@@ -8,7 +8,7 @@ public class ActuatorTest extends Actuator {
     @Override
     public void act(List<String> list) {
 
-        System.out.println("Hello!");
+        //System.out.println("Hello!");
         /*for(String s : list){
             System.out.println(s);
         }*/

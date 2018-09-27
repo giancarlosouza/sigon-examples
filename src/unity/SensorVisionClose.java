@@ -37,7 +37,7 @@ public class SensorVisionClose extends Sensor {
                 }
                 //System.out.println("Message received from client is " + msg);
                 Perception p = new Perception(msg.substring(0, msg.lastIndexOf(",")));
-                perceptions.remove(p);
+                boolean removed = perceptions.remove(p);
                 perceptions.add(p);
 
                 HashSet<Perception> temp = new HashSet<>();
@@ -72,6 +72,9 @@ public class SensorVisionClose extends Sensor {
                     System.out.println(this.sensorName + " Priority: " + this.getPriority() + ", Time: "
                             + msg.substring(msg.lastIndexOf(",")+1));
                     timeToCheckPerceptions = 1000;
+                }
+                if(!removed) {
+                    super.publisher.onNext(p.getValue());
                 }
 
                 timeToCheckPerceptions--;
