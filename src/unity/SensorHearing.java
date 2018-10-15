@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.HashSet;
 
 public class SensorHearing extends Sensor {
@@ -14,9 +15,11 @@ public class SensorHearing extends Sensor {
     private String sensorName = "Hearing";
     private Socket socket;
     private int port = 2405;
+    private float mass = 80.0f;
     private HashSet<Perception> perceptions = new HashSet<>();
     private HashSet<Perception> oldPerceptions = new HashSet<>();
-    private int timeToCheckPerceptions = 1000;
+    private HashMap<String, Perception> latestObjectPerception = new HashMap<>();
+    private double timeToCheckPerceptions = 0;
     private int minPriority = 1;
     private int maxPriority = 10;
 
@@ -35,50 +38,7 @@ public class SensorHearing extends Sensor {
                 if (msg == null) {
                     break;
                 }
-                //System.out.println("Message received from client is " + msg);
-                Perception p = new Perception(msg.substring(0, msg.lastIndexOf(",")));
-                boolean removed = perceptions.remove(p);
-                perceptions.add(p);
-
-                HashSet<Perception> temp = new HashSet<>();
-
-                perceptions.stream().forEach(perception -> {
-                    perception.setTimeCount(perception.getTimeCount() - 1);
-                    if (perception.getTimeCount() == 0) {
-                        //System.out.println("Removing " + perception.getValue());
-                        temp.add(perception);
-                    }
-                });
-
-                perceptions.removeAll(temp);
-                oldPerceptions.removeAll(temp);
-
-                //System.out.println(perceptions.size());
-                //System.out.println();
-
-                if (timeToCheckPerceptions == 0) {
-                    int oldPerceptionsSize = oldPerceptions.size();
-                    oldPerceptions.addAll(perceptions);
-
-                    if (oldPerceptions.size() > oldPerceptionsSize) {
-                        if (this.getPriority() < this.getMaxPriority()) {
-                            this.setPriority(this.getPriority() + 1);
-                        }
-                    } else {
-                        if (this.getPriority() > this.getMinPriority()) {
-                            this.setPriority(this.getPriority() - 1);
-                        }
-                    }
-                    System.out.println(this.sensorName + " Priority: " + this.getPriority() + ", Time: "
-                            + msg.substring(msg.lastIndexOf(",")+1));
-                    timeToCheckPerceptions = 1000;
-                }
-                if(!removed) {
-                    super.publisher.onNext(p.getValue());
-                }
-
-                timeToCheckPerceptions--;
-
+                effectiveMassPriorityStrategy(msg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,6 +48,79 @@ public class SensorHearing extends Sensor {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void differentPerceptionPriorityStrategy(String msg){
+        Perception p = new Perception(msg.substring(0, msg.lastIndexOf(",")));
+        perceptions.remove(p);
+        perceptions.add(p);
+
+        HashSet<Perception> temp = new HashSet<>();
+
+        perceptions.stream().forEach(perception -> {
+            perception.setTimeCount(perception.getTimeCount() - 1);
+            if (perception.getTimeCount() == 0) {
+                temp.add(perception);
+            }
+        });
+
+        perceptions.removeAll(temp);
+        oldPerceptions.removeAll(temp);
+
+        if (Double.valueOf(msg.substring(msg.lastIndexOf(",")+1)) - timeToCheckPerceptions > 2) {
+            int oldPerceptionsSize = oldPerceptions.size();
+            oldPerceptions.addAll(perceptions);
+
+            if (oldPerceptions.size() > oldPerceptionsSize) {
+                if (this.getPriority() < this.getMaxPriority()) {
+                    this.setPriority(this.getPriority() + 1);
+                }
+            } else {
+                if (this.getPriority() > this.getMinPriority()) {
+                    this.setPriority(this.getPriority() - 1);
+                }
+            }
+            /*System.out.println(this.sensorName + ", " + this.getPriority() + ", "
+                    + msg.substring(msg.lastIndexOf(",")+1) + ", " + (oldPerceptions.size() - oldPerceptionsSize));*/
+            timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
+        }
+        checkLatestPerceptionToPublish(p);
+    }
+
+    public void effectiveMassPriorityStrategy(String msg){
+        Perception p = new Perception(msg.substring(0, msg.lastIndexOf(",")));
+        perceptions.remove(p);
+        perceptions.add(p);
+
+        if (Double.valueOf(msg.substring(msg.lastIndexOf(",")+1)) - timeToCheckPerceptions > 2) {
+            float priorityCalculation = 1 - (mass / perceptions.size());
+            int newPriority = Math.round(priorityCalculation * 10);
+            if(newPriority > this.getMaxPriority()){
+                newPriority = this.getMaxPriority();
+            } else if (newPriority < this.getMinPriority()){
+                newPriority = this.getMinPriority();
+            }
+            this.setPriority(newPriority);
+            System.out.println(this.sensorName + ", " + this.getPriority() + ", "
+                    + msg.substring(msg.lastIndexOf(",")+1) + ", " + this.perceptions.size());
+            timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
+            perceptions.clear();
+        }
+        checkLatestPerceptionToPublish(p);
+    }
+
+    public void checkLatestPerceptionToPublish(Perception p){
+        String objectKey = p.getValue().substring(0, p.getValue().indexOf(","));
+        if(latestObjectPerception.get(objectKey) != null){
+            if(!latestObjectPerception.get(objectKey).getValue().equals(p.getValue())){
+                //System.out.println("Atualizando e Publicando: " + p.getValue());
+                latestObjectPerception.put(objectKey,p);
+                super.publisher.onNext(p.getValue());
+            }
+        } else {
+            //System.out.println("Colocando: " + p.getValue());
+            latestObjectPerception.put(objectKey,p);
         }
     }
 
