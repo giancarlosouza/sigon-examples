@@ -38,7 +38,7 @@ public class SensorTact extends Sensor {
                 if (msg == null) {
                     break;
                 }
-                effectiveMassPriorityStrategy(msg);
+                differentPerceptionPriorityStrategy(msg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,8 +81,8 @@ public class SensorTact extends Sensor {
                     this.setPriority(this.getPriority() - 1);
                 }
             }
-            /*System.out.println(this.sensorName + ", " + this.getPriority() + ", "
-                    + msg.substring(msg.lastIndexOf(",")+1) + ", " + (oldPerceptions.size() - oldPerceptionsSize));*/
+            System.out.println(this.sensorName + ", " + this.getPriority() + ", "
+                    + msg.substring(msg.lastIndexOf(",")+1) + ", " + (oldPerceptions.size() - oldPerceptionsSize));
             timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
         }
         checkLatestPerceptionToPublish(p);
@@ -102,8 +102,8 @@ public class SensorTact extends Sensor {
                 newPriority = this.getMinPriority();
             }
             this.setPriority(newPriority);
-            /*System.out.println(this.sensorName + ", " + this.getPriority() + ", "
-                    + msg.substring(msg.lastIndexOf(",")+1) + ", " + this.perceptions.size());*/
+            System.out.println(this.sensorName + ", " + this.getPriority() + ", "
+                    + msg.substring(msg.lastIndexOf(",")+1) + ", " + this.perceptions.size());
             timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
             perceptions.clear();
         }
@@ -114,12 +114,10 @@ public class SensorTact extends Sensor {
         String objectKey = p.getValue().substring(0, p.getValue().indexOf(","));
         if(latestObjectPerception.get(objectKey) != null){
             if(!latestObjectPerception.get(objectKey).getValue().equals(p.getValue())){
-                //System.out.println("Atualizando e Publicando: " + p.getValue());
                 latestObjectPerception.put(objectKey,p);
                 super.publisher.onNext(p.getValue());
             }
         } else {
-            //System.out.println("Colocando: " + p.getValue());
             latestObjectPerception.put(objectKey,p);
         }
     }

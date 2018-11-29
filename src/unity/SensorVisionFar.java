@@ -26,27 +26,6 @@ public class SensorVisionFar extends Sensor {
 
     @Override
     public void run() {
-        /*double startTime = System.nanoTime() /1000000.0;
-        double endTime = (System.nanoTime() /1000000.0) - startTime;
-        ArrayList<Double> time = new ArrayList<Double>();
-        while(endTime <= 30000){
-            super.publisher.onNext("test.");
-            endTime = (System.nanoTime() /1000000.0) - startTime;
-            time.add(endTime);
-            //System.out.println(endTime);
-        }
-        ArrayList<Double> time2 = new ArrayList<Double>();
-        time2.add(time.get(0));
-        for(int i = 1; i < time.size(); i++){
-            double tempo = time.get(i) - time.get(i-1);
-            time2.add(tempo);
-        }
-        double soma = 0;
-        for(int i = 0; i < time2.size(); i++){
-            System.out.print(time2.get(i) + ",");
-            soma += time2.get(i);
-        }
-        System.out.println("Media: " + (soma / time2.size()));*/
         try {
             ServerSocket serverSocket = new ServerSocket(port);
             System.out.println("Server Started and listening to the port " + port);
@@ -60,7 +39,7 @@ public class SensorVisionFar extends Sensor {
                 if (msg == null) {
                     break;
                 }
-                effectiveMassPriorityStrategy(msg);
+                differentPerceptionPriorityStrategy(msg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,19 +108,17 @@ public class SensorVisionFar extends Sensor {
             timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
             perceptions.clear();
         }
-        //checkLatestPerceptionToPublish(p);
+        checkLatestPerceptionToPublish(p);
     }
 
     public void checkLatestPerceptionToPublish(Perception p){
         String objectKey = p.getValue().substring(0, p.getValue().indexOf(","));
         if(latestObjectPerception.get(objectKey) != null){
             if(!latestObjectPerception.get(objectKey).getValue().equals(p.getValue())){
-                //System.out.println("Atualizando e Publicando: " + p.getValue());
                 latestObjectPerception.put(objectKey,p);
                 super.publisher.onNext(p.getValue());
             }
         } else {
-            //System.out.println("Colocando: " + p.getValue());
             latestObjectPerception.put(objectKey,p);
         }
     }

@@ -38,7 +38,7 @@ public class SensorVisionMed extends Sensor {
                 if (msg == null) {
                     break;
                 }
-                effectiveMassPriorityStrategy(msg);
+                differentPerceptionPriorityStrategy(msg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -52,7 +52,6 @@ public class SensorVisionMed extends Sensor {
     }
 
     public void differentPerceptionPriorityStrategy(String msg){
-        //System.out.println("Message received from client is " + msg);
         Perception p = new Perception(msg.substring(0, msg.lastIndexOf(",")));
         perceptions.remove(p);
         perceptions.add(p);
@@ -62,16 +61,12 @@ public class SensorVisionMed extends Sensor {
         perceptions.stream().forEach(perception -> {
             perception.setTimeCount(perception.getTimeCount() - 1);
             if (perception.getTimeCount() == 0) {
-                //System.out.println("Removing " + perception.getValue());
                 temp.add(perception);
             }
         });
 
         perceptions.removeAll(temp);
         oldPerceptions.removeAll(temp);
-
-        //System.out.println(perceptions.size());
-        //System.out.println();
 
         if (Double.valueOf(msg.substring(msg.lastIndexOf(",")+1)) - timeToCheckPerceptions > 2) {
             int oldPerceptionsSize = oldPerceptions.size();
@@ -112,19 +107,17 @@ public class SensorVisionMed extends Sensor {
             timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
             perceptions.clear();
         }
-        //checkLatestPerceptionToPublish(p);
+        checkLatestPerceptionToPublish(p);
     }
 
     public void checkLatestPerceptionToPublish(Perception p){
         String objectKey = p.getValue().substring(0, p.getValue().indexOf(","));
         if(latestObjectPerception.get(objectKey) != null){
             if(!latestObjectPerception.get(objectKey).getValue().equals(p.getValue())){
-                //System.out.println("Atualizando e Publicando: " + p.getValue());
                 latestObjectPerception.put(objectKey,p);
                 super.publisher.onNext(p.getValue());
             }
         } else {
-            //System.out.println("Colocando: " + p.getValue());
             latestObjectPerception.put(objectKey,p);
         }
     }

@@ -38,7 +38,7 @@ public class SensorVisionClose extends Sensor {
                 if (msg == null) {
                     break;
                 }
-                effectiveMassPriorityStrategy(msg);
+                differentPerceptionPriorityStrategy(msg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,7 +107,7 @@ public class SensorVisionClose extends Sensor {
             timeToCheckPerceptions = Double.valueOf(msg.substring(msg.lastIndexOf(",")+1));
             perceptions.clear();
         }
-        //checkLatestPerceptionToPublish(p);
+        checkLatestPerceptionToPublish(p);
     }
 
     public void checkLatestPerceptionToPublish(Perception p){
